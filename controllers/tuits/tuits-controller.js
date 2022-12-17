@@ -1,5 +1,4 @@
-import posts from "./tuits.js";
-let tuits = posts;
+import * as tuitsDao from '../tuits/tuits-dao.js'
 
 const currentUser = {
     "userName": "NASA",
@@ -18,36 +17,34 @@ const templateTuit = {
     "disliked": false,
     "dislikes": 0
 }
-
-const createTuit = (req, res) => {
-    // const newTuit = req.body;
-    const newTuit = {
-        ...templateTuit,
-        ...req.body
-    };
-    newTuit._id = (new Date()).getTime()+'';    // add _id field as a time stamp
-    tuits.push(newTuit);                        // append new tuit to tuits array
-    res.json(newTuit);                          // respond with new tuit
+const createTuit = async (req, res) => {
+    const newTuit = req.body;
+    newTuit.likes = 0;
+    newTuit.liked = false;
+    const insertedTuit = await tuitsDao
+        .createTuit(newTuit);
+    res.json(insertedTuit);
 }
 
-const findTuits = (req, res) =>
-    res.json(tuits);
 
-const updateTuit = (req, res) => {
+const findTuits = async (req, res) => {
+    const tuits = await tuitsDao.findTuits()
+    res.json(tuits);
+}
+const updateTuit = async (req, res) => {
     const tuitdIdToUpdate = req.params.tid;     // get ID of tuit to update from path
     const updates = req.body;                   // get updates from HTTP body
-    const tuitIndex = tuits.findIndex(          // find index of tuit to update
-        (t) =>  t._id.toString() === tuitdIdToUpdate)   // in the tuits array
-    tuits[tuitIndex] =                          // update the element in tuits array
-        {...tuits[tuitIndex], ...updates};      // merging/updating old tuit with updates
-    res.sendStatus(200);                        // respond with success
+    const status = await tuitsDao
+        .updateTuit(tuitdIdToUpdate,
+            updates);     // merging/updating old tuit with updates
+    res.json(status);                        // respond with success
 }
 
-const deleteTuit = (req, res) => {
+const deleteTuit = async (req, res) => {
     const tuitdIdToDelete = req.params.tid;  // retrieve the ID of the tuit we want to remove
-    tuits = tuits.filter((t) =>         // filter out the tuit from the tuits array
-        t._id.toString() !== tuitdIdToDelete);
-    res.sendStatus(200);                    // respond with success
+    const status = await tuitsDao
+        .deleteTuit(tuitdIdToDelete);
+    res.json(status);                    // respond with success
 }
 
 export default (app) => {
