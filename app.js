@@ -10,6 +10,7 @@ import TuitsController
 import mongoose from "mongoose";
 const CONNECTION_STRING = process.env.DB_CONNECTION_STRING
     || "mongodb://localhost:27017/tuiter"
+mongoose.set("strictQuery", false);
 mongoose.connect(CONNECTION_STRING);
 app.use(cors())
 app.use(express.json());
